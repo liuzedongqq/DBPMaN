@@ -3,47 +3,53 @@ import pickle as pkl
 import sys
 
 def generate_neg_sample(in_file, out_file):
-    item_list = []
-    user_map = {}
+    item_list = []  # 用于存储所有物品ID的列表
+    user_map = {}   # 用于存储每个用户的行为记录
 
-    # UserID,ItemID,CategoryID,BehaviorType,Timestamp
+    # 注释：数据格式为 UserID,ItemID,CategoryID,BehaviorType,Timestamp
 
     fi = open(in_file, "r")
     for line in fi:
-        item = line.strip().split(',')
+        item = line.strip().split(',')  # 将每行数据按逗号分割
         if item[0] not in user_map:
-            user_map[item[0]] = []
+            user_map[item[0]] = []  # 如果用户不在 user_map 中，则初始化一个空列表
+        # 将用户的行为记录（包括时间戳）添加到 user_map 中
         user_map[item[0]].append(("\t".join(item), float(item[-1])))
-        item_list.append(item[1])
+        item_list.append(item[1])  # 将物品ID添加到 item_list 中
 
     fi = open(in_file, 'r')
-    meta_map = {}  # meta_map记录item_category映射
+    meta_map = {}  # 用于存储物品与类别的映射关系
     for line in fi:
         arr = line.strip().split(",")
         if arr[1] not in meta_map:
-            meta_map[arr[1]] = arr[2]
+            meta_map[arr[1]] = arr[2]  # 将物品ID和类别ID的映射存储到 meta_map 中
 
     fo = open(out_file, "w")
     for key in user_map:
+        # 对每个用户的行为记录按时间戳排序
         sorted_user_bh = sorted(user_map[key], key=lambda x: x[1])
         for line, t in sorted_user_bh:
-            items = line.split("\t")
-            asin = items[1]  # ItemId
+            items = line.split("\t")  # 将行为记录按制表符分割
+            asin = items[1]  # 获取当前行为的物品ID
             j = 0
             while True:
+                # 随机选择一个物品ID作为负样本
                 asin_neg_index = random.randint(0, len(item_list) - 1)
                 asin_neg = item_list[asin_neg_index]
                 if asin_neg == asin:
-                    continue
-                items[1] = asin_neg
-                print("0" + "\t" + "\t".join(items) + "\t" + meta_map[asin_neg], file=fo)
+                    continue  # 如果负样本与正样本相同，继续选择
+                items[1] = asin_neg  # 替换为负样本的物品ID
+                # 将负样本写入文件，标记为0
+                print("0" + "\t" + "\t".join(items) + "\t" + meta_map.get(asin_neg, "default_cat"), file=fo)
                 j += 1
-                if j == 1:  # negative sampling frequency
+                if j == 1:  # 控制负样本的数量（这里是1个）
                     break
+            # 将正样本写入文件，标记为1
             if asin in meta_map:
                 print("1" + "\t" + line + "\t" + meta_map[asin], file=fo)
             else:
                 print("1" + "\t" + line + "\t" + "default_cat", file=fo)
+
 
 
 def generate_split_data_tag(in_file, out_file):

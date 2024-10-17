@@ -163,54 +163,66 @@ def split_data(in_file, train_file, test_file):
 
 
 def generate_mapid_pkl(in_file, uid_pkl, mid_pkl, cid_pkl):
-    # generate map_id voc
-    # save in pkl
-    f_in = open(in_file, "r")
-    uid_dict = {}
-    mid_dict = {}
-    cat_dict = {}
-    iddd = 0
+    # 生成映射ID字典并保存为pickle文件
+
+    f_in = open(in_file, "r")  # 打开输入文件进行读取
+    uid_dict = {}  # 用于存储用户ID及其出现次数的字典
+    mid_dict = {}  # 用于存储电影ID及其出现次数的字典
+    cat_dict = {}  # 用于存储类别ID及其出现次数的字典
+    iddd = 0  # 未使用的变量
+
     for line in f_in:
-        arr = line.strip("\n").split("\t")
-        uid = arr[1]
-        mid = arr[2]
-        cat = arr[6]
-        # mid_list = arr[4]
-        # cat_list = arr[5]
+        # 逐行读取输入文件并处理
+        arr = line.strip("\n").split("\t")  # 去除换行符并按制表符分割行
+        uid = arr[1]  # 获取用户ID
+        mid = arr[2]  # 获取电影ID
+        cat = arr[6]  # 获取类别ID
+
+        # 更新用户ID字典
         if uid not in uid_dict:
-            uid_dict[uid] = 0
-        uid_dict[uid] += 1
+            uid_dict[uid] = 0  # 如果用户ID不在字典中，初始化为0
+        uid_dict[uid] += 1  # 增加用户ID的出现次数
+
+        # 更新电影ID字典
         if mid not in mid_dict:
-            mid_dict[mid] = 0
-        mid_dict[mid] += 1
+            mid_dict[mid] = 0  # 如果电影ID不在字典中，初始化为0
+        mid_dict[mid] += 1  # 增加电影ID的出现次数
+
+        # 更新类别ID字典
         if cat not in cat_dict:
-            cat_dict[cat] = 0
-        cat_dict[cat] += 1
+            cat_dict[cat] = 0  # 如果类别ID不在字典中，初始化为0
+        cat_dict[cat] += 1  # 增加类别ID的出现次数
+
+    # 按出现次数降序排序字典，并生成列表
     sorted_uid_dict = sorted(uid_dict.items(), key=lambda x: x[1], reverse=True)
     sorted_mid_dict = sorted(mid_dict.items(), key=lambda x: x[1], reverse=True)
     sorted_cat_dict = sorted(cat_dict.items(), key=lambda x: x[1], reverse=True)
 
+    # 初始化用户ID映射字典，并设置默认值
     uid_voc = {"default_uid": 0}
     index = 1
     for key, value in sorted_uid_dict:
-        uid_voc[key] = index
+        uid_voc[key] = index  # 将用户ID映射到从1开始的索引
         index += 1
 
+    # 初始化电影ID映射字典，并设置默认值
     mid_voc = {"default_mid": 0}
     index = 1
     for key, value in sorted_mid_dict:
-        mid_voc[key] = index
+        mid_voc[key] = index  # 将电影ID映射到从1开始的索引
         index += 1
 
+    # 初始化类别ID映射字典，并设置默认值
     cat_voc = {"default_cat": 0}
     index = 1
     for key, value in sorted_cat_dict:
-        cat_voc[key] = index
+        cat_voc[key] = index  # 将类别ID映射到从1开始的索引
         index += 1
 
-    pkl.dump(uid_voc, open(uid_pkl, "wb"),protocol=2)
-    pkl.dump(mid_voc, open(mid_pkl, "wb"),protocol=2)
-    pkl.dump(cat_voc, open(cid_pkl, "wb"),protocol=2)
+    # 将映射字典保存为pickle文件
+    pkl.dump(uid_voc, open(uid_pkl, "wb"), protocol=2)
+    pkl.dump(mid_voc, open(mid_pkl, "wb"), protocol=2)
+    pkl.dump(cat_voc, open(cid_pkl, "wb"), protocol=2)
 
 
 if __name__ == '__main__':

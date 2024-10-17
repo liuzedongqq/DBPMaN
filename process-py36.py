@@ -49,32 +49,48 @@ def generate_neg_sample(in_file, out_file):
 def generate_split_data_tag(in_file, out_file):
     fi = open(in_file, "r")
     fo = open(out_file, "w")
-    user_count = {}
+
+    user_count = {}  # 用于存储每个用户的记录数量
+
+    # 第一遍遍历文件，计算每个用户的记录数量
     for line in fi:
-        line = line.strip()
-        user = line.split("\t")[1]
+        line = line.strip()  # 去除行首尾的空白字符
+        user = line.split("\t")[1]  # 获取用户ID（假设用户ID在第2列）
         if user not in user_count:
             user_count[user] = 0
         user_count[user] += 1
+
+    # 将文件指针移回文件开头
     fi.seek(0)
-    i = 0
-    last_user = "A26ZDKC53OP6JD"
+
+    i = 0  # 用于跟踪当前用户的记录序号
+    last_user = "A26ZDKC53OP6JD"  # 用于跟踪上一个用户的标识符
+
+    # 第二遍遍历文件，为每行记录生成标签
     for line in fi:
-        line = line.strip()
-        user = line.split("\t")[1]
+        line = line.strip()  # 去除行首尾的空白字符
+        user = line.split("\t")[1]  # 获取用户ID
+
         if user == last_user:
-            if i < user_count[user] - 20:  # 1 + negative samples
-                print("20180118" + "\t" + line, file=fo)
-            else:
-                print("20190119" + "\t" + line, file=fo)
-        else:
-            last_user = user
-            i = 0
+            # 如果当前用户与上一个用户相同
             if i < user_count[user] - 20:
-                print("20180118" + "\t" + line, file=fo)
+                # 如果当前记录序号小于该用户总记录数减去20
+                print("20180118" + "\t" + line, file=fo)  # 标记为训练集
             else:
-                print("20190119" + "\t" + line, file=fo)
-        i += 1
+                print("20190119" + "\t" + line, file=fo)  # 标记为测试集
+        else:
+            # 如果遇到一个新用户
+            last_user = user  # 更新当前用户为上一个用户
+            i = 0  # 重置记录序号
+            if i < user_count[user] - 20:
+                print("20180118" + "\t" + line, file=fo)  # 标记为训练集
+            else:
+                print("20190119" + "\t" + line, file=fo)  # 标记为测试集
+
+        i += 1  # 增加当前用户的记录序号
+
+
+
 
 def split_data(in_file, train_file, test_file):
     # 打开输入文件和输出文件（训练集和测试集）

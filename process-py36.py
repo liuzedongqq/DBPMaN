@@ -76,58 +76,68 @@ def generate_split_data_tag(in_file, out_file):
                 print("20190119" + "\t" + line, file=fo)
         i += 1
 
-
 def split_data(in_file, train_file, test_file):
+    # 打开输入文件和输出文件（训练集和测试集）
     fin = open(in_file, "r")
     ftrain = open(train_file, "w")
     ftest = open(test_file, "w")
 
-    last_user = "XXXXXXX"
-    common_fea = ""
-    line_idx = 0
-    for line in fin:
-        items = line.strip().split("\t")
-        ds = items[0]  # 标记训练/验证集
-        clk = int(items[1])  # 标记正负样本
-        user = items[2]
-        movie_id = items[3]
-        dt = items[6]  # 标记时间戳
-        cat1 = items[7]  # 标记类别
+    last_user = "XXXXXXX"  # 用于跟踪上一个用户的标识符
+    line_idx = 0  # 用于跟踪行号，虽然在当前代码中没有实际使用
 
+    for line in fin:
+        # 将每一行按制表符分割成多个部分
+        items = line.strip().split("\t")
+        ds = items[0]  # 数据集标识符，决定是训练集还是测试集
+        clk = int(items[1])  # 点击标记，1表示正样本，0表示负样本
+        user = items[2]  # 用户ID
+        movie_id = items[3]  # 电影ID
+        dt = items[6]  # 时间戳（在当前逻辑中未使用）
+        cat1 = items[7]  # 类别标识
+
+        # 根据数据集标识符决定当前行输出到训练集还是测试集
         if ds == "20180118":
-            fo = ftrain
+            fo = ftrain  # 输出到训练集
             tag = 1
         else:
-            fo = ftest
+            fo = ftest  # 输出到测试集
             tag = 0
+
+        # 如果遇到一个新的用户，则初始化该用户的电影和类别列表
         if user != last_user:
             movie_id_list = []
             cate1_list = []
-            # print >> fo, items[1] + "\t" + user + "\t" + movie_id + "\t" + cat1 +"\t" + "" + "\t" + ""
         else:
+            # 获取当前用户的历史点击电影数量
             history_clk_num = len(movie_id_list)
-            # cat_str = ""
-            # mid_str = ""
-            # for c1 in cate1_list:
-            #     cat_str += c1 + ","
-            # for mid in movie_id_list:
-            #     mid_str += mid + ","
-            # if len(cat_str) > 0: cat_str = cat_str[:-1]
-            # if len(mid_str) > 0: mid_str = mid_str[:-1]
+
+            # 如果用户有历史点击记录
             if history_clk_num >= 1:
+                # 根据标记决定输出的历史记录长度
                 if tag == 1:
+                    # 对于训练集，最多使用最近的100条历史记录
                     print(items[1] + "\t" + user + "\t" + movie_id + "\t" + cat1 + "\t" + ','.join(
                         movie_id_list[-100:]) + "\t" + ','.join(cate1_list[-100:]), file=fo)
                 else:
+                    # 对于测试集，使用所有历史记录
                     print(items[1] + "\t" + user + "\t" + movie_id + "\t" + cat1 + "\t" + ','.join(
                         movie_id_list) + "\t" + ','.join(cate1_list), file=fo)
+
+        # 更新最后一个用户的标识符
         last_user = user
+
+        # 如果当前记录是正样本，则将电影ID和类别添加到用户的历史记录中
         if clk:
             movie_id_list.append(movie_id)
             cate1_list.append(cat1)
+
+        # 增加行索引计数（虽然在当前逻辑中未使用）
         line_idx += 1
 
+    # 输出处理完成的消息
     print('split data finished')
+
+
 
 
 def generate_mapid_pkl(in_file, uid_pkl, mid_pkl, cid_pkl):
